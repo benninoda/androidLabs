@@ -1,7 +1,7 @@
 # Android labs
 
-Елизавета Тесля
+Lizaveta Teslya
 
 ---
 
-Группа 853502
+Group 853502
