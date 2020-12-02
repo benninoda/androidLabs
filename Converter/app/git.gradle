@@ -1,7 +1,7 @@
 def getPatch() {
     def diffOutput = new ByteArrayOutputStream()
     exec {
-        commandLine 'cmd', 'git', 'describe'
+        commandLine 'git', 'describe', '--tags', '--long'
         standardOutput = diffOutput
     }
     def res = diffOutput.toString()
@@ -15,7 +15,7 @@ def getPatch() {
 def getLastTag() {
     def tagsOutput = new ByteArrayOutputStream()
     exec {
-        commandLine 'cmd', 'git', 'describe'
+        commandLine 'git', 'describe', '--tags', '--long'
         standardOutput = tagsOutput
     }
     def res = tagsOutput.toString()
