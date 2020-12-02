@@ -5,21 +5,21 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
-
-import android.widget.AdapterView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.javalabs.test.R;
 
@@ -47,6 +47,7 @@ public class DataFragment extends Fragment {
     @SuppressLint("WrongViewCast")
     @Override
     public void onViewCreated(@Nullable View view, @Nullable Bundle savedInstanceState){
+        Log.e("D", "IN INVIEWCREATED");
         assert view != null;
         super.onViewCreated(view, savedInstanceState);
 
@@ -76,15 +77,12 @@ public class DataFragment extends Fragment {
         setSpinnerToListener();
         setSpinnerFromListener();
 
-
-            if (view.findViewById(R.id.btn_swap) != null) {
-                btnSwapValue = (ImageButton) view.findViewById(R.id.btn_swap);
-                btnCopyInput = (ImageButton) view.findViewById(R.id.btn_copy_input);
-                btnCopyOutput = (ImageButton) view.findViewById(R.id.btn_copy_output);
-            }
-            btnSwapValue.setOnClickListener(v -> swapValues());
-            btnCopyInput.setOnClickListener(v -> copyInput());
-            btnCopyOutput.setOnClickListener(v -> copyOutput());
+        btnSwapValue = (ImageButton) view.findViewById(R.id.btn_swap);
+        btnCopyInput = (ImageButton) view.findViewById(R.id.btn_copy_input);
+        btnCopyOutput = (ImageButton) view.findViewById(R.id.btn_copy_output);
+        btnSwapValue.setOnClickListener(v -> swapValues());
+        btnCopyInput.setOnClickListener(v -> copyInput());
+        btnCopyOutput.setOnClickListener(v -> copyOutput());
     }
 
     @Override
@@ -186,16 +184,18 @@ public class DataFragment extends Fragment {
     }
 
     public void copyInput() {
-        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager) Objects.requireNonNull(getActivity()).getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText(getString(R.string.input_value),
                                                     mViewModel.getSelectedDataFrom().getValue());
+        assert clipboard != null;
         clipboard.setPrimaryClip(clip);
         Toast.makeText(getActivity(), R.string.toast_copy, Toast.LENGTH_SHORT).show();
     }
 
     public void copyOutput() {
-        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager) Objects.requireNonNull(getActivity()).getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText(getString(R.string.output_value), mViewModel.getSelectedDataTo().getValue());
+        assert clipboard != null;
         clipboard.setPrimaryClip(clip);
         Toast.makeText(getActivity(), R.string.toast_copy, Toast.LENGTH_SHORT).show();
     }

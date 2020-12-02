@@ -26,13 +26,6 @@
                 android:layout_height="match_parent"
                 android:entries="@array/convertCategories" />
 
-            <ImageButton
-                android:id="@+id/btn_swap"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:visibility="invisible"
-                />
-
 
         </LinearLayout>
 
@@ -53,13 +46,6 @@
                 android:layout_weight="1"
                 android:textSize="26sp"
                 android:ellipsize="end"/>
-
-            <ImageButton
-                android:id="@+id/btn_copy_input"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:visibility="invisible"
-                android:layout_weight="0"/>
 
             <Spinner
                 android:id="@+id/data_from_unit"
@@ -88,12 +74,6 @@
                 android:gravity="center_vertical"
                 android:textSize="26sp"
                 android:ellipsize="end"/>
-
-            <ImageButton
-                android:id="@+id/btn_copy_output"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:visibility="invisible"/>
 
             <Spinner
                 android:id="@+id/data_to_unit"
