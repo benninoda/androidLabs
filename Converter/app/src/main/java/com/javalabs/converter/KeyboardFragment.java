@@ -30,7 +30,7 @@ public class KeyboardFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        Log.e("D", "ONCREATEVIEW");
+
         mViewModel = ViewModelProviders.of(Objects.requireNonNull(getActivity())).get(DataViewModel.class);
         return inflater.inflate(R.layout.keyboard_fragment, container, false);
     }

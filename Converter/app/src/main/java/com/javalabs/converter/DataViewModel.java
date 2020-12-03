@@ -25,6 +25,7 @@ public class DataViewModel extends ViewModel {
 
     public void setUtilities(String[] categories){
         unitConverter = new LengthConverter(categories);
+        Log.e("D", "set utils view model");
     }
 
     public void selectDataFrom(String item) {
