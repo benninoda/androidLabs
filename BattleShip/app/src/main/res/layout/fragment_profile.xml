@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+    <!--android:padding="8dp"-->
+    <RelativeLayout
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="437dp"
+        android:background="@android:color/white">
+
+        <ImageView
+            android:id="@+id/imgProfilePic"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_launcher" />
+
+        <ImageView
+            android:id="@+id/imgFloating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="100dp"
+            android:background="@drawable/ovel"
+            android:elevation="5dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_round_check_48" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="320dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/divider" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="60dp">
+
+            <TextView
+                android:id="@+id/nickname_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dimen_16dp"
+                android:fontFamily="@font/neucha"
+                android:textSize="16pt" />
+
+            <ImageButton
+                android:id="@+id/change_nickname"
+                android:layout_width="36dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="20dp"
+                android:background="@color/white"
+                android:src="@drawable/ic_round_edit_24" />
+
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/second_divider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="380dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/divider" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="@dimen/dimen_16dp"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/neucha"
+            android:text="Статистика"
+            android:textSize="16pt" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="430dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/divider" />
+
+
+    </RelativeLayout>
+
+
+
+    <ListView
+        android:layout_below="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white" />
+
+</RelativeLayout>

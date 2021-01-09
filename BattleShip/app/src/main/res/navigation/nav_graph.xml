@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graf"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.javalabs.battleship.fragments.MainFragment"
+        android:label="fragment_main"
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_createBattlefieldFragment"
+            app:destination="@id/createBattlefieldFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_gameFragment"
+            app:destination="@id/gameFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_createOnlineBattlefieldFragment"
+            app:destination="@id/createOnlineBattlefieldFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.javalabs.battleship.fragments.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/createBattlefieldFragment"
+        android:name="com.javalabs.battleship.fragments.CreateBattlefieldFragment"
+        android:label="fragment_create_battlefield"
+        tools:layout="@layout/fragment_create_battlefield" />
+    <fragment
+        android:id="@+id/gameFragment"
+        android:name="com.javalabs.battleship.fragments.GameFragment"
+        android:label="fragment_game"
+        tools:layout="@layout/fragment_game" />
+    <fragment
+        android:id="@+id/createOnlineBattlefieldFragment"
+        android:name="com.javalabs.battleship.fragments.CreateOnlineBattlefieldFragment"
+        android:label="CreateOnlineBattlefieldFragment" />
+</navigation>

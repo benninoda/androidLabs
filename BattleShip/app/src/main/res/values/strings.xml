@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">BattleShip</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="dialog_ok">Ok</string>
+    <string name="dialog_cancel">Отмена</string>
+    <string name="enter_id">Введите ID</string>
+    <string name="create_game_button">Создать игру</string>
+    <string name="join_game_button">Присоединиться к игре</string>
+    <string name="status_welcome_text">Добро пожаловать</string>
+    <string name="new_game_text">Новая игра</string>
+    <string name="start_text">Старт</string>
+    <string name="generate_ships_text">Сгенерировать</string>
+    <string name="fire_text">Огонь</string>
+    <string name="letter_a">А</string>
+    <string name="letter_b">Б</string>
+    <string name="letter_c">В</string>
+    <string name="letter_d">Г</string>
+    <string name="letter_e">Д</string>
+    <string name="letter_f">Е</string>
+    <string name="letter_g">Ж</string>
+    <string name="letter_h">З</string>
+    <string name="letter_i">И</string>
+    <string name="letter_j">К</string>
+    <string name="number_1" translatable="false">1</string>
+    <string name="number_2" translatable="false">2</string>
+    <string name="number_3" translatable="false">3</string>
+    <string name="number_4" translatable="false">4</string>
+    <string name="number_5" translatable="false">5</string>
+    <string name="number_6" translatable="false">6</string>
+    <string name="number_7" translatable="false">7</string>
+    <string name="number_8" translatable="false">8</string>
+    <string name="number_9" translatable="false">9</string>
+    <string name="number_10" translatable="false">10</string>
+    <string name="status_generate_or_start_text">Сгенерируйте корабли снова или начните игру</string>
+    <string name="status_select_to_fire_text">Выберите клетку для выстрела</string>
+    <string name="status_game_over_you_win_text">Игра окончена вы победили!</string>
+    <string name="status_game_over_you_lose_text">Игра окончена вы проиграли</string>
+    <string name="status_shot_ship_again_text">Выберите клетку и сделайте выстрел снова</string>
+    <string name="status_opponent_shot_text">Оппонент совершает выстрел</string>
+    <string name="status_opponent_shot_again_text">Оппонент совершает выстрел снова</string>
+    <string name="menu_share_text">Поделиться</string>
+    <string name="profile">Профиль</string>
+    <string name="playBot">Сыграть с ботом</string>
+</resources>
