@@ -4,21 +4,29 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.ktx.Firebase
 import com.javalabs.battleship.R
-import com.javalabs.battleship.SECOND_IN_MILLIS
 import com.javalabs.battleship.battle_field.BattleField
 import com.javalabs.battleship.battle_field.Coordinate
-import com.javalabs.battleship.logic.ShotManager
 import com.javalabs.battleship.models.Player
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import org.junit.runner.Request.method
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+
 
 class GameViewModel : ViewModel() , IGetViewModel{
 
+    private lateinit var playerId: String
     private lateinit var activePlayer: Player
+    private  lateinit var client: CollectionReference
+
     private var _selectedByPersonCoordinate = MutableLiveData<Coordinate>()
     val selectedByPersonCoordinate: LiveData<Coordinate>
         get() = _selectedByPersonCoordinate
@@ -29,6 +37,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
     val status: LiveData<Int>
         get() = _status
     var shareId = MutableLiveData<String>()
+    var docRef = MutableLiveData<DocumentReference>()
     private var _personShips = MutableLiveData<ArrayList<Coordinate>>()
     val personShips: LiveData<ArrayList<Coordinate>>
         get() = _personShips
@@ -55,6 +64,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
     private lateinit var personBattleField: BattleField
     private lateinit var opponentBattleField: BattleField
     private lateinit var game: HashMap<String, Any>
+    private lateinit var gameQueue: Queue<Any>
 //    private lateinit var shotManager: ShotManager
 
     init {
@@ -66,26 +76,19 @@ class GameViewModel : ViewModel() , IGetViewModel{
         viewModelJob.cancel()
     }
 
-    private fun createGame(){
 
+    fun setPlayer(player: Player, uid: String){
+        //ToDo
     }
 
     private fun initValues() {
-        activePlayer = Player.FIRST
-        game = hashMapOf(
-            "firstPlayerId" to Firebase.auth.currentUser!!.uid,
-            "startGameEvent" to false,
-            "endGameEvent" to false)
-        Firebase.firestore.collection("games").add(game)
-            .addOnSuccessListener { documentReference ->
-                run {
-                    shareId.postValue(documentReference.id)
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.w("lll", "Error adding document", e)}
+        gameQueue = LinkedList<Any>()
+        playerId = Firebase.auth.currentUser!!.uid
+        activePlayer = Player.NONE
 
-//        shotManager = ShotManager()
+        //        shotManager = ShotManager()
+
+
         personBattleField = BattleField()
         opponentBattleField = BattleField()
         _status.value = R.string.status_welcome_text
@@ -93,6 +96,33 @@ class GameViewModel : ViewModel() , IGetViewModel{
         _endGameEvent.value = false
         _selectedByPersonCoordinate.value = null
     }
+
+
+    fun produce(key: String, value: Any) {
+        this.client.document(shareId.value!!).set();
+
+         val event = hashMapOf<String, Any>(
+           "type" to playerConnected(),
+           "params" to '1'
+         );
+    }
+    
+    fun initConsumer(){
+
+    }
+
+    fun updateState() {
+        while (true) {
+            val currentEvent = gameQueue.remove()
+            val method = jsonToMethod(currentEvent)
+
+        }
+    }
+
+    fun jsonToMethod(){
+
+    }
+
 
     fun startGame() {
         _startGameEvent.value = true
@@ -113,6 +143,15 @@ class GameViewModel : ViewModel() , IGetViewModel{
         _personSuccessfulShots.value = ArrayList()
         _computerFailShots.value = ArrayList()
         _computerSuccessfulShots.value = ArrayList()
+
+        this.gameQueue.add({
+            val kFunction0 = this::playerConnected
+            kFunction0});
+
+    }
+
+    fun playerConnected(){
+
     }
 
     override fun handleOpponentAreaClick(coordinate: Coordinate) {
@@ -123,6 +162,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
             }
         }
     }
+
 
     private fun playAsPerson() {
         activePlayer = Player.FIRST

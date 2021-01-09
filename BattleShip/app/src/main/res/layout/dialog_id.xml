@@ -15,4 +15,11 @@
         android:layout_height="wrap_content"
         android:hint="@string/enter_id" />
 
+    <ImageButton
+        android:id="@+id/copy_in_dialog_id"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@color/transparent"
+        android:src="@drawable/ic_round_content_copy_24"/>
+
 </LinearLayout>

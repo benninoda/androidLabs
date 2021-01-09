@@ -11,10 +11,18 @@
 
     <TextView
         android:id="@+id/dialog_content_text_view"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Тут должен был быть id"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="Ожидание id"
+        android:layout_weight="1"
         android:textSize="8pt"
         />
+    <ImageButton
+        android:id="@+id/copy_in_dialog_create_game"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@color/transparent"
+        android:src="@drawable/ic_round_content_copy_24"/>
 
 </LinearLayout>

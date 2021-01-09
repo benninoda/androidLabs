@@ -2,21 +2,29 @@ package com.javalabs.battleship.fragments
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.javalabs.battleship.R
 import com.javalabs.battleship.R.layout
+import com.javalabs.battleship.models.Player
 import com.javalabs.battleship.viewmodels.GameViewModel
-import com.javalabs.battleship.viewmodels.UserViewModel
 
 
 class MainFragment : Fragment() {
@@ -55,18 +63,70 @@ class MainFragment : Fragment() {
 
         welcomeTextView.text = "Добро пожаловать, " + user?.displayName + "!"
         btnToProfile.setOnClickListener{
-            Log.e("D", "btn to profile click")
             Navigation.findNavController(requireView()).navigate(R.id.action_mainFragment_to_profileFragment)
         }
 
         btnCreateGame.setOnClickListener{
+
             val builder = AlertDialog.Builder(context)
             val inflater = layoutInflater
             builder.setTitle("Game ID")
-//builder.setPositiveButton("OK", DialogInterface.OnClickListener(function = x))
 
             val dialogLayout = inflater.inflate(layout.dialog_create_game, null)
             val editText  = dialogLayout.findViewById<TextView>(R.id.dialog_content_text_view)
+            val copyId = dialogLayout.findViewById<ImageButton>(R.id.copy_in_dialog_create_game)
+
+            copyId.setOnClickListener{
+                val clipboard: ClipboardManager =
+                    requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText(
+                    "gameId",
+                    editText.text
+                )
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(activity, "Скопировано", Toast.LENGTH_SHORT).show()
+            }
+
+            val game = hashMapOf(
+                "firstPlayerId" to Firebase.auth.currentUser!!.uid)
+            viewModel.setPlayer(Player.FIRST, Firebase.auth.currentUser!!.uid)
+            Firebase.firestore.collection("games").add(game)
+                .addOnSuccessListener { documentReference ->
+                    run {
+                        viewModel.shareId.postValue(documentReference.id)
+                        viewModel.docRef.postValue(documentReference)
+                    }
+                }
+                .addOnFailureListener{ e ->
+                    Log.w("lll", "Error adding document", e)}
+
+
+            viewModel.shareId.observe(viewLifecycleOwner, Observer {
+                editText.text = viewModel.shareId.value
+                val docRef = Firebase.firestore.collection("games")
+                    .document(viewModel.shareId.value!!)
+
+                docRef.addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        Log.w("listener", "Listen failed.", e)
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null && snapshot.exists()) {
+                        Log.d("TAG", "Current data: ${snapshot.data}")
+                    } else {
+                        Log.e( "listener", "Current data: null")
+                    }
+                }
+            })
+
+            viewModel.docRef.observe(viewLifecycleOwner, Observer{
+
+            })
+
+
+
+
             builder.setView(dialogLayout)
             Log.e("D", (editText == null).toString())
             builder.setPositiveButton(R.string.dialog_ok) { dialog, which ->
@@ -91,15 +151,12 @@ class MainFragment : Fragment() {
             val builder = AlertDialog.Builder(context)
             val inflater = layoutInflater
             builder.setTitle("Game ID")
-//builder.setPositiveButton("OK", DialogInterface.OnClickListener(function = x))
-
             val dialogLayout = inflater.inflate(layout.dialog_id, null)
             val editText  = dialogLayout.findViewById<EditText>(R.id.dialog_content)
             builder.setView(dialogLayout)
             Log.e("D", (editText == null).toString())
             builder.setPositiveButton(R.string.dialog_ok) { dialog, which ->
-                Toast.makeText(context,
-                    android.R.string.yes, Toast.LENGTH_SHORT).show()
+                viewModel.setPlayer(Player.SECOND, Firebase.auth.currentUser!!.uid)
                 Navigation.findNavController(requireView()).navigate(R.id.action_mainFragment_to_createOnlineBattlefieldFragment)
             }
             builder.setNegativeButton(R.string.dialog_cancel) { dialog, which ->
@@ -109,14 +166,6 @@ class MainFragment : Fragment() {
             builder.show()
         }
 
-    }
-
-    companion object {
-
-        fun newInstance(param1: String, param2: String) =
-            MainFragment().apply {
-
-            }
     }
 
 }
