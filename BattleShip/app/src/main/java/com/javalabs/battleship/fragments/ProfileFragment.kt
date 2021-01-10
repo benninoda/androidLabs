@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.javalabs.battleship.utils.CircleTransform
 import androidx.navigation.Navigation
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -38,7 +39,7 @@ class ProfileFragment : Fragment() {
     private lateinit var nicknameTextView: TextView
     private lateinit var btnChangeNickname: ImageButton
     private lateinit var btnSave: ImageView
-    private lateinit var imageUri: Uri
+//    private lateinit var imageUri: Uri
     lateinit var viewModel: UserViewModel
 
     private val PICK_IMAGE = 100
@@ -74,7 +75,7 @@ class ProfileFragment : Fragment() {
         Log.e("D", viewModel.nickname.value.toString())
         if (user?.photoUrl != null) {
             Picasso.with(context)
-                .load(user.photoUrl)
+                .load(user.photoUrl).transform(CircleTransform())
                 .into(profileImageView)
         } else {
             profileImageView.setImageResource(R.drawable.ic_launcher)
@@ -123,7 +124,7 @@ class ProfileFragment : Fragment() {
                     nicknameTextView.text = editText.text
                 } else {
                     Toast.makeText(
-                        context,
+                        requireContext(),
                         "Никнейм не может быть пустой строкой",
                         Toast.LENGTH_SHORT
                     )
@@ -139,7 +140,7 @@ class ProfileFragment : Fragment() {
         btnSave.setOnClickListener {
 
             val inputStream: InputStream? =
-                requireContext().contentResolver.openInputStream(imageUri)
+                requireContext().contentResolver.openInputStream(viewModel.imageUri.value!!)
             val avatarRef =
                 Firebase.storage.reference.child("avatars/${java.util.Calendar.getInstance().time}")
             val uploadTask = avatarRef.putStream(inputStream!!)
@@ -154,6 +155,7 @@ class ProfileFragment : Fragment() {
             }.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     viewModel.imageUri.postValue(task.result)
+
                 }
             }
         }
@@ -181,7 +183,7 @@ class ProfileFragment : Fragment() {
         if (requestCode == PICK_IMAGE) {
             if (data != null) {
                 profileImageView.setImageURI(data.data!!)
-                imageUri = data.data!!
+                viewModel.imageUri.value = (data.data!!)
             }
         }
 

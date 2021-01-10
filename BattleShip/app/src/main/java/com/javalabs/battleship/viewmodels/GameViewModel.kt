@@ -4,28 +4,42 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.navigation.Navigation
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.javalabs.battleship.R
 import com.javalabs.battleship.battle_field.BattleField
 import com.javalabs.battleship.battle_field.Coordinate
+import com.javalabs.battleship.logic.ShotManager
 import com.javalabs.battleship.models.Player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import org.junit.runner.Request.method
+import kotlinx.coroutines.launch
+//import org.junit.runner.Request.method
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
+
 class GameViewModel : ViewModel() , IGetViewModel{
+    private val TAG: String = "GameViewModel"
 
     private lateinit var playerId: String
-    private lateinit var activePlayer: Player
+    private lateinit var currentPlayer: Player
+    lateinit var activePlayer: Player
     private  lateinit var client: CollectionReference
+    private var isCurrentUserReady: Boolean = false
+
 
     private var _selectedByPersonCoordinate = MutableLiveData<Coordinate>()
     val selectedByPersonCoordinate: LiveData<Coordinate>
@@ -53,7 +67,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
     private var _computerSuccessfulShots = MutableLiveData<ArrayList<Coordinate>>()
     val computerSuccessfulShots: LiveData<ArrayList<Coordinate>>
         get() = _computerSuccessfulShots
-    private var _startGameEvent = MutableLiveData<Boolean>()
+    var _startGameEvent = MutableLiveData<Boolean>()
     val startGameEvent: LiveData<Boolean>
         get() = _startGameEvent
     private var _endGameEvent = MutableLiveData<Boolean>()
@@ -65,6 +79,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
     private lateinit var opponentBattleField: BattleField
     private lateinit var game: HashMap<String, Any>
     private lateinit var gameQueue: Queue<Any>
+    private lateinit var shotManager: ShotManager
 //    private lateinit var shotManager: ShotManager
 
     init {
@@ -78,16 +93,17 @@ class GameViewModel : ViewModel() , IGetViewModel{
 
 
     fun setPlayer(player: Player, uid: String){
-        //ToDo
+        Log.e("e", "IN SET PLAYER; PLAYER=" + player)
+        currentPlayer = player
+        playerId = uid
     }
 
     private fun initValues() {
-        gameQueue = LinkedList<Any>()
-        playerId = Firebase.auth.currentUser!!.uid
+//        playerId = Firebase.auth.currentUser!!.uid
         activePlayer = Player.NONE
+        currentPlayer = Player.NONE
 
-        //        shotManager = ShotManager()
-
+        shotManager = ShotManager()
 
         personBattleField = BattleField()
         opponentBattleField = BattleField()
@@ -98,35 +114,62 @@ class GameViewModel : ViewModel() , IGetViewModel{
     }
 
 
-    fun produce(key: String, value: Any) {
-        this.client.document(shareId.value!!).set();
-
-         val event = hashMapOf<String, Any>(
-           "type" to playerConnected(),
-           "params" to '1'
-         );
-    }
+//    fun produce(key: String, value: Any) {
+//        this.client.document(shareId.value!!).set();
+//
+//         val event = hashMapOf<String, Any>(
+//           "type" to playerConnected(),
+//           "params" to '1'
+//         );
+//    }
     
-    fun initConsumer(){
+//    fun initConsumer(){
+//        val postListener = object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                val post = dataSnapshot.value
+//            }
+//
+//            override fun onCancelled(databaseError: DatabaseError) {
+//                Log.w("TAG", "loadPost:onCancelled", databaseError.toException())
+//            }
+//        }.add
+//    }
 
-    }
-
-    fun updateState() {
-        while (true) {
-            val currentEvent = gameQueue.remove()
-            val method = jsonToMethod(currentEvent)
-
-        }
-    }
-
-    fun jsonToMethod(){
-
-    }
-
+//    fun updateState() {
+//        while (true) {
+//            val currentEvent = gameQueue.remove()
+//            val method = jsonToMethod(currentEvent)
+//
+//        }
+//    }
 
     fun startGame() {
-        _startGameEvent.value = true
-        playAsPerson()
+
+        if (isCurrentUserReady)
+            return
+
+        Log.e(TAG,  "in start game in game view model " + shareId.value)
+        val docRef = Firebase.firestore.collection("games")
+            .document(shareId.value!!)
+
+
+        if (currentPlayer == Player.FIRST){
+            Log.e("Log", "Is first player; gameId=" + shareId.value)
+            docRef.set(hashMapOf(
+                "FirstPlayerReady" to true
+            ), SetOptions.merge())
+        }
+        else if (currentPlayer == Player.SECOND){
+            Log.e("Log", "Is Second player; gameId=" + shareId.value)
+            docRef.set(hashMapOf(
+                "SecondPlayerReady" to true
+            ), SetOptions.merge())
+        }
+        else {
+            Log.e("Player log", " HUETA")
+        }
+
+        isCurrentUserReady = true
     }
 
     fun generateShips() {
@@ -143,11 +186,6 @@ class GameViewModel : ViewModel() , IGetViewModel{
         _personSuccessfulShots.value = ArrayList()
         _computerFailShots.value = ArrayList()
         _computerSuccessfulShots.value = ArrayList()
-
-        this.gameQueue.add({
-            val kFunction0 = this::playerConnected
-            kFunction0});
-
     }
 
     fun playerConnected(){
@@ -155,7 +193,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
     }
 
     override fun handleOpponentAreaClick(coordinate: Coordinate) {
-        if (activePlayer == Player.SECOND) {
+        if (activePlayer == Player.FIRST) {
             Log.e("D", "in opponent area click 2 players")
             if (opponentBattleField.isCellFreeToBeSelected(coordinate)) {
                 _selectedByPersonCoordinate.value = coordinate
@@ -164,7 +202,7 @@ class GameViewModel : ViewModel() , IGetViewModel{
     }
 
 
-    private fun playAsPerson() {
+    public fun playAsPerson() {
         activePlayer = Player.FIRST
         if (_status.value != R.string.status_shot_ship_again_text) {
             _status.value = R.string.status_select_to_fire_text
@@ -186,47 +224,47 @@ class GameViewModel : ViewModel() , IGetViewModel{
             } else {
                 _personFailShots.value = opponentBattleField.getDotsCoordinates()
                 _status.value = R.string.status_opponent_shot_text
-                activePlayer = Player.SECOND
+                activePlayer = Player.COMPUTER
 //                Firebase.firestore.
 //                playAsComputer()
             }
         }
     }
 
-//    private fun playAsComputer() {
-//        val coordinate: Coordinate = shotManager.getCoordinateToShot()
-//        _selectedByComputerCoordinate.value = coordinate
-//        val isShipHit = personBattleField.handleShot(coordinate)
-//        shotManager.handleShot(isShipHit)
-//        if (isShipHit) {
-//            uiScope.launch {
+    private fun playAsComputer() {
+        val coordinate: Coordinate = shotManager.getCoordinateToShot()
+        _selectedByComputerCoordinate.value = coordinate
+        val isShipHit = personBattleField.handleShot(coordinate)
+        shotManager.handleShot(isShipHit)
+        if (isShipHit) {
+            uiScope.launch {
 //                delay(SECOND_IN_MILLIS)
-//                _computerSuccessfulShots.value = personBattleField.getCrossesCoordinates()
-//                if (personBattleField.isGameOver()) {
-//                    endGame(false)
-//                } else {
-//                    _status.value = R.string.status_opponent_shot_again_text
-//                    checkCurrentPlayer()
-//                }
-//            }
-//        } else {
-//            uiScope.launch {
+                _computerSuccessfulShots.value = personBattleField.getCrossesCoordinates()
+                if (personBattleField.isGameOver()) {
+                    endGame(false)
+                } else {
+                    _status.value = R.string.status_opponent_shot_again_text
+                    checkCurrentPlayer()
+                }
+            }
+        } else {
+            uiScope.launch {
 //                delay(SECOND_IN_MILLIS + SECOND_IN_MILLIS / 2)
-//                _computerFailShots.value = personBattleField.getDotsCoordinates()
-//                activePlayer = Player.PERSON
-//                checkCurrentPlayer()
-//                _status.value = R.string.status_select_to_fire_text
-//            }
-//        }
-//    }
+                _computerFailShots.value = personBattleField.getDotsCoordinates()
+                activePlayer = Player.PERSON
+                checkCurrentPlayer()
+                _status.value = R.string.status_select_to_fire_text
+            }
+        }
+    }
 
-//    private fun checkCurrentPlayer() {
-//        if (activePlayer == Player.PERSON) {
-//            playAsPerson()
-//        } else {
-//            playAsComputer()
-//        }
-//    }
+    private fun checkCurrentPlayer() {
+        if (activePlayer == Player.PERSON) {
+            playAsPerson()
+        } else {
+            playAsComputer()
+        }
+    }
 
     private fun endGame(isFirstPersonWon: Boolean) {
         activePlayer = Player.NONE

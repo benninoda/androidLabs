@@ -73,6 +73,14 @@
             android:fontFamily="@font/neucha"
             android:text="@string/playBot"
             android:textSize="26sp"/>
+        <TextView
+            android:id="@+id/bn"
+            style="@style/button_white"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/neucha"
+            android:text="test"
+            android:textSize="26sp"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

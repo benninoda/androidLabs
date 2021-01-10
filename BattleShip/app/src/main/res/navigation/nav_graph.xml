@@ -17,9 +17,6 @@
             android:id="@+id/action_mainFragment_to_createBattlefieldFragment"
             app:destination="@id/createBattlefieldFragment" />
         <action
-            android:id="@+id/action_mainFragment_to_gameFragment"
-            app:destination="@id/gameFragment" />
-        <action
             android:id="@+id/action_mainFragment_to_createOnlineBattlefieldFragment"
             app:destination="@id/createOnlineBattlefieldFragment" />
     </fragment>
@@ -38,12 +35,14 @@
         android:label="fragment_create_battlefield"
         tools:layout="@layout/fragment_create_battlefield" />
     <fragment
-        android:id="@+id/gameFragment"
-        android:name="com.javalabs.battleship.fragments.GameFragment"
-        android:label="fragment_game"
-        tools:layout="@layout/fragment_game" />
-    <fragment
         android:id="@+id/createOnlineBattlefieldFragment"
         android:name="com.javalabs.battleship.fragments.CreateOnlineBattlefieldFragment"
-        android:label="CreateOnlineBattlefieldFragment" />
+        android:label="CreateOnlineBattlefieldFragment" >
+        <argument
+            android:name="gameId"
+            app:argType="string" />
+        <argument
+            android:name="playerNumber"
+            app:argType="boolean" />
+    </fragment>
 </navigation>

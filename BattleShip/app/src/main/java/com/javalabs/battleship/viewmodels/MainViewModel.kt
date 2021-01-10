@@ -14,8 +14,8 @@ import kotlinx.coroutines.*
 
 class MainViewModel : ViewModel(), IGetViewModel {
 
-    private lateinit var activePlayer: Player
-    private var _selectedByPersonCoordinate = MutableLiveData<Coordinate>()
+    lateinit var activePlayer: Player
+    var _selectedByPersonCoordinate = MutableLiveData<Coordinate>()
     val selectedByPersonCoordinate: LiveData<Coordinate>
         get() = _selectedByPersonCoordinate
     private var _selectedByComputerCoordinate = MutableLiveData<Coordinate>()
@@ -39,7 +39,7 @@ class MainViewModel : ViewModel(), IGetViewModel {
     private var _computerSuccessfulShots = MutableLiveData<ArrayList<Coordinate>>()
     val computerSuccessfulShots: LiveData<ArrayList<Coordinate>>
         get() = _computerSuccessfulShots
-    private var _startGameEvent = MutableLiveData<Boolean>()
+    var _startGameEvent = MutableLiveData<Boolean>()
     val startGameEvent: LiveData<Boolean>
         get() = _startGameEvent
     private var _endGameEvent = MutableLiveData<Boolean>()
