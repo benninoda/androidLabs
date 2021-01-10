@@ -4,42 +4,31 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.navigation.Navigation
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import com.javalabs.battleship.R
 import com.javalabs.battleship.battle_field.BattleField
 import com.javalabs.battleship.battle_field.Coordinate
-import com.javalabs.battleship.logic.ShotManager
 import com.javalabs.battleship.models.Player
+import com.javalabs.battleship.models.ships.Ship
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 //import org.junit.runner.Request.method
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
-
-class GameViewModel : ViewModel() , IGetViewModel{
-    private val TAG: String = "GameViewModel"
+class GameViewModel : ViewModel(), IGetViewModel {
 
     private lateinit var playerId: String
-    private lateinit var currentPlayer: Player
     lateinit var activePlayer: Player
-    private  lateinit var client: CollectionReference
-    private var isCurrentUserReady: Boolean = false
-
+    private lateinit var client: CollectionReference
 
     private var _selectedByPersonCoordinate = MutableLiveData<Coordinate>()
     val selectedByPersonCoordinate: LiveData<Coordinate>
@@ -78,9 +67,14 @@ class GameViewModel : ViewModel() , IGetViewModel{
     private lateinit var personBattleField: BattleField
     private lateinit var opponentBattleField: BattleField
     private lateinit var game: HashMap<String, Any>
-    private lateinit var gameQueue: Queue<Any>
-    private lateinit var shotManager: ShotManager
+
+//    private lateinit var gameQueue: Queue<Any>
 //    private lateinit var shotManager: ShotManager
+
+    //==================================
+    private lateinit var currentPlayer: Player;
+    private lateinit var currentPlayerId: String;
+
 
     init {
         initValues()
@@ -92,19 +86,18 @@ class GameViewModel : ViewModel() , IGetViewModel{
     }
 
 
-    fun setPlayer(player: Player, uid: String){
-        Log.e("e", "IN SET PLAYER; PLAYER=" + player)
-        currentPlayer = player
-        playerId = uid
+    private fun setPlayer(player: Player, uid: String) {
+        Log.d("GameView", "Player: ${player}")
+        Log.d("GameView", "Player UID: ${uid}")
+        activePlayer = player;
+        currentPlayer = Player.NONE;
+        currentPlayerId = uid; //
     }
 
     private fun initValues() {
 //        playerId = Firebase.auth.currentUser!!.uid
         activePlayer = Player.NONE
-        currentPlayer = Player.NONE
-
-        shotManager = ShotManager()
-
+        //        shotManager = ShotManager()
         personBattleField = BattleField()
         opponentBattleField = BattleField()
         _status.value = R.string.status_welcome_text
@@ -114,68 +107,179 @@ class GameViewModel : ViewModel() , IGetViewModel{
     }
 
 
-//    fun produce(key: String, value: Any) {
-//        this.client.document(shareId.value!!).set();
-//
-//         val event = hashMapOf<String, Any>(
-//           "type" to playerConnected(),
-//           "params" to '1'
-//         );
-//    }
-    
-//    fun initConsumer(){
-//        val postListener = object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                val post = dataSnapshot.value
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                Log.w("TAG", "loadPost:onCancelled", databaseError.toException())
-//            }
-//        }.add
-//    }
+    /**
+     * Create listener for game events from firebase
+     */
+    fun initFirebaseConsumer(gameId: String) {
+        val gameDocumentReference = Firebase.firestore.collection("gameEvents")
+            .document(gameId);
+        gameDocumentReference.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.w("listener", "Listen failed.", e)
+                return@addSnapshotListener
+            }
 
-//    fun updateState() {
-//        while (true) {
-//            val currentEvent = gameQueue.remove()
-//            val method = jsonToMethod(currentEvent)
-//
-//        }
-//    }
+            if (snapshot != null && snapshot.exists()) {
+                Log.d("TAG", "Current data: ${snapshot.data}")
+                val currentData = snapshot.data;
+                when (currentData?.get("CurrentEvent")) {
+                    "PlayerTurn" -> {
+                        processPlayerTurn(currentData["CurrentPlayer"] as String)
+                    }
+                    "Hit" -> {
+                        processHit(
+                            currentData["CurrentPlayer"] as String,
+                            currentData["X"].toString().toInt(),
+                            currentData["Y"].toString().toInt()
+                        )
+                    }
+                    "Miss" -> {
+                        processMiss(
+                            currentData["CurrentPlayer"] as String,
+                            currentData["X"].toString().toInt(),
+                            currentData["Y"].toString().toInt()
+                        )
 
-    fun startGame() {
-
-        if (isCurrentUserReady)
-            return
-
-        Log.e(TAG,  "in start game in game view model " + shareId.value)
-        val docRef = Firebase.firestore.collection("games")
-            .document(shareId.value!!)
-
-
-        if (currentPlayer == Player.FIRST){
-            Log.e("Log", "Is first player; gameId=" + shareId.value)
-            docRef.set(hashMapOf(
-                "FirstPlayerReady" to true
-            ), SetOptions.merge())
+                    }
+                    "SwitchPlayers" -> {
+                        processSwitchPlayers(currentData["CurrentPlayer"] as String)
+                    }
+                    "EndGame" -> {
+                        processEndGame(currentData["Winner"] as String)
+                    }
+                }
+            } else {
+                Log.e("listener", "Current data: null")
+            }
         }
-        else if (currentPlayer == Player.SECOND){
-            Log.e("Log", "Is Second player; gameId=" + shareId.value)
-            docRef.set(hashMapOf(
-                "SecondPlayerReady" to true
-            ), SetOptions.merge())
+    }
+
+    private fun playerConnected() {
+
+    }
+
+    fun firstPlayerConnect(player: Player, uid: String) {
+        setPlayer(player, uid);
+//        currentPlayer = Player.FIRST;
+        // todo: put event
+        playerConnected()
+    }
+
+    fun secondPlayerConnect(player: Player, uid: String) {
+        setPlayer(player, uid);
+//        currentPlayer = Player.FIRST ;
+        // todo: override params
+        playerConnected()
+    }
+
+    fun processPlayerTurn(id: String) {
+        if (id == activePlayer.toString()) {
+            _startGameEvent.value = true;
+            currentPlayer = activePlayer;
+            playAsPerson();
         }
         else {
-            Log.e("Player log", " HUETA")
+            currentPlayer = Player.NONE;
         }
+    }
 
-        isCurrentUserReady = true
+    fun shot() {
+        // todo: do we need it ?
+    }
+
+    fun processSwitchPlayers(previousPlayerId: String) {
+        //
+        if (previousPlayerId == currentPlayerId) {
+            // Make Battlefield inactive
+            // todo:
+        }
+    }
+
+    fun processStartGame() {
+        // 1. get game info drom DB
+        // todo:
+        // playerTurn(1)
+    }
+
+    fun processEndGame(winnerId: String) {
+        // update stats for both players
+        // todo:
+    }
+
+    fun processFirstPlayerConnect() {
+        // todo:
+    }
+
+    fun processSecondPlayerConnect() {
+        if (activePlayer == Player.FIRST) {
+            // put startGameEvent to game state -- only server starts game !
+            // todo:
+        }
+    }
+
+    fun startGame() {
+        val collection = Firebase.firestore.collection("games")
+            .document(shareId.value!!)
+        val eventsCollection = Firebase.firestore.collection("gameEvents")
+            .document(shareId.value!!)
+        if (activePlayer == Player.FIRST) {
+            Log.e("Log", "Is first player; gameId=" + shareId.value)
+            collection.set(
+                hashMapOf(
+                    "FirstPlayerReady" to true
+                ), SetOptions.merge()
+            )
+            collection.set(
+                hashMapOf(
+                    "FirstPlayerField" to personBattleField.getShipsCoordinates()
+                ), SetOptions.merge()
+            )
+            eventsCollection.set(
+                hashMapOf(
+                    "CurrentEvent" to "PlayerTurn",
+                    "CurrentPlayer" to "FIRST",
+                    "Params" to hashMapOf(
+                        "currentPlayer" to "First"
+                    )
+                )
+            )
+        }
+        if (activePlayer == Player.SECOND) {
+            Log.e("Log", "Is Second player; gameId=" + shareId.value)
+            collection.set(
+                hashMapOf(
+                    "SecondPlayerReady" to true
+                ), SetOptions.merge()
+            )
+            collection.set(
+                hashMapOf(
+                    "SecondPlayerField" to personBattleField.getShipsCoordinates()
+                ), SetOptions.merge()
+            )
+        }
+        val listen = collection.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.w("listener", "Listen failed.", e)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                Log.d("TAG", "Current data: ${snapshot.data}")
+//                personBattleField.ships = snapshot.data?.get("FirstPlayerBattlefield") as List<Ship>
+//                opponentBattleField.ships = snapshot.data?.get("SecondPlayerBattlefield") as List<Ship>
+            } else {
+                Log.e("listener", "Current data: null")
+            }
+        }
+        Thread.sleep(2000L);
     }
 
     fun generateShips() {
         personBattleField.initBattleShip()
         personBattleField.randomizeShips()
         _personShips.value = personBattleField.getShipsCoordinates()
+
+        opponentBattleField.initBattleShip()
+        opponentBattleField.randomizeShips()
         _status.value = R.string.status_generate_or_start_text
     }
 
@@ -188,12 +292,8 @@ class GameViewModel : ViewModel() , IGetViewModel{
         _computerSuccessfulShots.value = ArrayList()
     }
 
-    fun playerConnected(){
-
-    }
-
     override fun handleOpponentAreaClick(coordinate: Coordinate) {
-        if (activePlayer == Player.FIRST) {
+        if (activePlayer == currentPlayer) {
             Log.e("D", "in opponent area click 2 players")
             if (opponentBattleField.isCellFreeToBeSelected(coordinate)) {
                 _selectedByPersonCoordinate.value = coordinate
@@ -202,69 +302,150 @@ class GameViewModel : ViewModel() , IGetViewModel{
     }
 
 
-    public fun playAsPerson() {
+    private fun playAsPerson() {
         activePlayer = Player.FIRST
         if (_status.value != R.string.status_shot_ship_again_text) {
             _status.value = R.string.status_select_to_fire_text
         }
     }
 
+    fun processHit(playerId: String, x: Int, y: Int) {
+        val eventsCollection = Firebase.firestore.collection("gameEvents")
+            .document(shareId.value!!)
+        if (playerId == activePlayer.toString()) {
+            _status.value = R.string.status_shot_ship_again_text
+            _personSuccessfulShots.value = opponentBattleField.getCrossesCoordinates()
+            if (opponentBattleField.isGameOver()) {
+                // todo: put in db endGameEvent(winner)
+                endGame(true)
+            } else {
+                // another hit
+                if (playerId == Player.FIRST.toString()) {
+                    eventsCollection.set(
+                        hashMapOf(
+                            "CurrentPlayer" to playerId,
+                            "CurrentEvent" to "PlayerTurn"
+                        )
+                    )
+                }
+            }
+        } else {
+            val coordinate:Coordinate = Coordinate(x, y);
+            _selectedByComputerCoordinate.value = coordinate
+            val isShipHit = personBattleField.handleShot(coordinate)
+            _computerSuccessfulShots.value = personBattleField.getCrossesCoordinates()
+            if (playerId == Player.FIRST.toString()) {
+                eventsCollection.set(
+                    hashMapOf(
+                        "CurrentPlayer" to playerId,
+                        "CurrentEvent" to "SwitchPlayers"
+                    )
+                )
+            }
+        }
+    }
+
+    fun processMiss(playerId: String, x: Int, y: Int) {
+        val eventsCollection = Firebase.firestore.collection("gameEvents")
+            .document(shareId.value!!)
+        if (playerId == activePlayer.toString()) {
+            val coordinate:Coordinate = Coordinate(x, y);
+            _selectedByComputerCoordinate.value = coordinate
+            val isShipHit = personBattleField.handleShot(coordinate)
+            _computerSuccessfulShots.value = personBattleField.getCrossesCoordinates()
+            if (playerId == Player.FIRST.toString()) {
+                eventsCollection.set(
+                    hashMapOf(
+                        "CurrentPlayer" to playerId,
+                        "CurrentEvent" to "SwitchPlayers"
+                    )
+                )
+            }
+        } else {
+            _status.value = R.string.status_shot_ship_again_text
+            _personSuccessfulShots.value = opponentBattleField.getCrossesCoordinates()
+            if (opponentBattleField.isGameOver()) {
+                // todo: put in db endGameEvent(winner)
+                endGame(true)
+            } else {
+                // another hit
+                if (playerId == Player.FIRST.toString()) {
+                    eventsCollection.set(
+                        hashMapOf(
+                            "CurrentPlayer" to playerId,
+                            "CurrentEvent" to "PlayerTurn"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     fun makeFireAsPerson() {
+        val eventsCollection = Firebase.firestore.collection("gameEvents")
+            .document(shareId.value!!)
         if (activePlayer == Player.FIRST) {
             val isShipHit = opponentBattleField.handleShot(_selectedByPersonCoordinate.value)
-            _selectedByPersonCoordinate.value = null
             if (isShipHit) {
-                _status.value = R.string.status_shot_ship_again_text
-                _personSuccessfulShots.value = opponentBattleField.getCrossesCoordinates()
-                if (opponentBattleField.isGameOver()) {
-                    endGame(true)
-                } else {
-                    playAsPerson()
-                }
+                eventsCollection.set(
+                    hashMapOf(
+                        "CurrentEvent" to "Hit",
+                        "CurrentPlayer" to activePlayer,
+                        "X" to _selectedByPersonCoordinate.value!!.x,
+                        "Y" to _selectedByPersonCoordinate.value!!.y
+                    )
+                )
+                _personFailShots.value = opponentBattleField.getDotsCoordinates()
             } else {
+                eventsCollection.set(
+                    hashMapOf(
+                        "CurrentEvent" to "Miss",
+                        "CurrentPlayer" to activePlayer,
+                        "X" to _selectedByPersonCoordinate.value!!.x,
+                        "Y" to _selectedByPersonCoordinate.value!!.y
+                    )
+                )
                 _personFailShots.value = opponentBattleField.getDotsCoordinates()
                 _status.value = R.string.status_opponent_shot_text
-                activePlayer = Player.COMPUTER
-//                Firebase.firestore.
-//                playAsComputer()
             }
+            _selectedByPersonCoordinate.value = null
         }
     }
 
-    private fun playAsComputer() {
-        val coordinate: Coordinate = shotManager.getCoordinateToShot()
-        _selectedByComputerCoordinate.value = coordinate
-        val isShipHit = personBattleField.handleShot(coordinate)
-        shotManager.handleShot(isShipHit)
-        if (isShipHit) {
-            uiScope.launch {
+//    private fun playAsComputer() {
+//        val coordinate: Coordinate = shotManager.getCoordinateToShot()
+//        _selectedByComputerCoordinate.value = coordinate
+//        val isShipHit = personBattleField.handleShot(coordinate)
+//        shotManager.handleShot(isShipHit)
+//        if (isShipHit) {
+//            uiScope.launch {
 //                delay(SECOND_IN_MILLIS)
-                _computerSuccessfulShots.value = personBattleField.getCrossesCoordinates()
-                if (personBattleField.isGameOver()) {
-                    endGame(false)
-                } else {
-                    _status.value = R.string.status_opponent_shot_again_text
-                    checkCurrentPlayer()
-                }
-            }
-        } else {
-            uiScope.launch {
+//                _computerSuccessfulShots.value = personBattleField.getCrossesCoordinates()
+//                if (personBattleField.isGameOver()) {
+//                    endGame(false)
+//                } else {
+//                    _status.value = R.string.status_opponent_shot_again_text
+//                    checkCurrentPlayer()
+//                }
+//            }
+//        } else {
+//            uiScope.launch {
 //                delay(SECOND_IN_MILLIS + SECOND_IN_MILLIS / 2)
-                _computerFailShots.value = personBattleField.getDotsCoordinates()
-                activePlayer = Player.PERSON
-                checkCurrentPlayer()
-                _status.value = R.string.status_select_to_fire_text
-            }
-        }
-    }
+//                _computerFailShots.value = personBattleField.getDotsCoordinates()
+//                activePlayer = Player.PERSON
+//                checkCurrentPlayer()
+//                _status.value = R.string.status_select_to_fire_text
+//            }
+//        }
+//    }
 
-    private fun checkCurrentPlayer() {
-        if (activePlayer == Player.PERSON) {
-            playAsPerson()
-        } else {
-            playAsComputer()
-        }
-    }
+//    private fun checkCurrentPlayer() {
+//        if (activePlayer == Player.PERSON) {
+//            playAsPerson()
+//        } else {
+//            playAsComputer()
+//        }
+//    }
 
     private fun endGame(isFirstPersonWon: Boolean) {
         activePlayer = Player.NONE

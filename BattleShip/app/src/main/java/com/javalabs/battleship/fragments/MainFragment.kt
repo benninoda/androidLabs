@@ -117,10 +117,10 @@ class MainFragment : Fragment() {
 
             val game = hashMapOf(
                 "firstPlayerId" to Firebase.auth.currentUser!!.uid)
-            viewModel.setPlayer(Player.FIRST, Firebase.auth.currentUser!!.uid)
             Firebase.firestore.collection("games").add(game)
                 .addOnSuccessListener { documentReference ->
                     run {
+//                        viewModel.shareId.postValue("2") 2 for debug
                         viewModel.shareId.postValue(documentReference.id)
                         viewModel.docRef.postValue(documentReference)
                     }
@@ -155,7 +155,6 @@ class MainFragment : Fragment() {
                         Log.e("listener", "vm " + viewModel.shareId.value!!)
                         Log.e("listener", "snap " + snapshot["gameId"].toString())
                         alert.dismiss()
-                        viewModel.setPlayer(Player.FIRST, Firebase.auth.currentUser!!.uid)
                         val bundle = Bundle()
                         bundle.putCharSequence("gameeId", viewModel.shareId.value)
                         bundle.putBoolean("playerNumber", true)
@@ -201,9 +200,6 @@ class MainFragment : Fragment() {
                                 "isConnected" to true,
                                 "gameId" to editText1.text.toString()
                             ))
-
-                            viewModel.setPlayer(Player.SECOND, Firebase.auth.currentUser!!.uid)
-
                             Log.e("kek", "BEFORE NAVIGATE; GAME_ID=" + viewModel.shareId.value.toString())
                             val bundle = Bundle()
                             bundle.putCharSequence("gameeId", editText1.text.toString())

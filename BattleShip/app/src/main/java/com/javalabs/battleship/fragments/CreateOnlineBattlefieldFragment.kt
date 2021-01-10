@@ -63,9 +63,10 @@ class CreateOnlineBattlefieldFragment : Fragment() {
                 }
 
                 if(arguments?.getBoolean("playerNumber")!!)
-                    viewModel.setPlayer(Player.FIRST, Firebase.auth.currentUser!!.uid)
+                    viewModel.firstPlayerConnect(Player.FIRST, Firebase.auth.currentUser!!.uid)
                 else
-                    viewModel.setPlayer(Player.SECOND, Firebase.auth.currentUser!!.uid)
+                    viewModel.secondPlayerConnect(Player.SECOND, Firebase.auth.currentUser!!.uid)
+                viewModel.initFirebaseConsumer(gameId);
             }
 
             binding.gameViewModel = viewModel
@@ -82,9 +83,11 @@ class CreateOnlineBattlefieldFragment : Fragment() {
 
             val docRef = Firebase.firestore.collection("games")
                 .document(gameId)
-            docRef.set(hashMapOf(
-                "GameIsStarted" to true
-            ))
+            docRef.set(
+                hashMapOf(
+                    "GameIsStarted" to true
+                )
+            )
 
             docRef.addSnapshotListener { snapshot, e ->
 
@@ -104,9 +107,6 @@ class CreateOnlineBattlefieldFragment : Fragment() {
                                 gameState = GameState.TURN_FIRST
                                 viewModel._startGameEvent.value = true
                                 viewModel.activePlayer = Player.FIRST
-
-                                viewModel.playAsPerson()
-
                                 Log.e("Gave event", "Set start game event as true")
                             }
                         }

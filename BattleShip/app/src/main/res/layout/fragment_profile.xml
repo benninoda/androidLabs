@@ -97,11 +97,46 @@
     </RelativeLayout>
 
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="@dimen/dimen_16dp"
+        android:layout_marginTop="455dp"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/neucha"
+        android:text="Количество всех игр"
+        android:textSize="10pt" />
 
-    <ListView
-        android:layout_below="@+id/rv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/white" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/dimen_16dp"
+        android:layout_marginBottom="193dp"
+        android:fontFamily="@font/neucha"
+        android:text="Выигранные игры"
+        android:textSize="10pt" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/dimen_16dp"
+        android:layout_marginBottom="133dp"
+        android:fontFamily="@font/neucha"
+        android:text="Проигранные игры"
+        android:textSize="10pt" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/dimen_16dp"
+        android:layout_marginBottom="65dp"
+        android:fontFamily="@font/neucha"
+        android:text="Незаконченные игры"
+        android:textSize="10pt" />
+
 
 </RelativeLayout>

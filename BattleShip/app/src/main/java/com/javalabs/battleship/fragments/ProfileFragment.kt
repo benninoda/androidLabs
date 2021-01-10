@@ -3,7 +3,6 @@ package com.javalabs.battleship.fragments
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.InputFilter
@@ -18,22 +17,21 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.javalabs.battleship.utils.CircleTransform
-import androidx.navigation.Navigation
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.javalabs.battleship.R
-import com.javalabs.battleship.viewmodels.MainViewModel
+import com.javalabs.battleship.models.PlayerStats
+//import com.javalabs.battleship.repository.PlayerRepository
+import com.javalabs.battleship.utils.CircleTransform
 import com.javalabs.battleship.viewmodels.UserViewModel
 import com.squareup.picasso.Picasso
 import java.io.InputStream
-import java.time.LocalDateTime
+
 
 class ProfileFragment : Fragment() {
+
 
     private lateinit var profileImageView: ImageView
     private lateinit var nicknameTextView: TextView
@@ -61,6 +59,9 @@ class ProfileFragment : Fragment() {
     @SuppressLint("ShowToast")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+//        val player: PlayerStats = PlayerRepository.player!!
+//        setData(player.getWonGames(), player.getLostGames(), player.getUnfinishedGames())
         val user = Firebase.auth.currentUser
         btnChangeNickname = view.findViewById(R.id.change_nickname)
         profileImageView = view.findViewById(R.id.imgProfilePic)
@@ -175,6 +176,15 @@ class ProfileFragment : Fragment() {
 
             startActivityForResult(getIntent, PICK_IMAGE)
         }
+
+    }
+
+    private fun setData(wonGames: Int, lostGames: Int, unfinishedGames: Int) {
+        var allGames = wonGames + lostGames + unfinishedGames
+        allGames = if (allGames == 0) 1 else allGames
+//        tvWonGames.setText(wonGames.toString())
+//        tvLostGames.setText(lostGames.toString())
+//        tvUnfinishedGames.setText(unfinishedGames.toString())
 
     }
 

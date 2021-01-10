@@ -4,10 +4,11 @@ import com.javalabs.battleship.models.ships.TwoDeckShip
 import com.javalabs.battleship.SQUARES_COUNT
 import com.javalabs.battleship.models.Direction
 import com.javalabs.battleship.models.ships.*
+import java.lang.reflect.Array
 
 class BattleField : BaseBattleField() {
 
-    private lateinit var ships: List<Ship>
+    public lateinit var ships: List<Ship>
 
     fun randomizeShips() {
         ships = listOf(
@@ -50,6 +51,10 @@ class BattleField : BaseBattleField() {
         printBattleField()
     }
 
+    fun shipsFromData( ) {
+
+    }
+
     fun handleShot(coordinate: Coordinate?): Boolean {
         var isShipHit = false
         if (coordinate != null && coordinate.x in 0 until SQUARES_COUNT && coordinate.y in 0 until SQUARES_COUNT) {
@@ -83,6 +88,13 @@ class BattleField : BaseBattleField() {
         }
         return result
     }
+
+//    fun getShips(): ArrayList<Ship> {
+//        val a = arrayListOf<ArrayList<Cell> >()
+//        for (ship in ships) {
+//
+//        }
+//    }
 
     fun getShipsCoordinates(): ArrayList<Coordinate> {
         val shipsCoordinates = arrayListOf<Coordinate>()
